@@ -1,0 +1,372 @@
+{
+  "info": {
+    "_postman_id": "electronic-shop-api",
+    "name": "Electronic Shop API",
+    "description": "Collection complète pour tester l'API Electronic Shop Management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "http://localhost:8080", "type": "string" },
+    { "key": "TOKEN_SUPERADMIN", "value": "", "type": "string" },
+    { "key": "TOKEN_ADMIN", "value": "", "type": "string" },
+    { "key": "SHOP_ID", "value": "", "type": "string" },
+    { "key": "PRODUCT_ID", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔑 Auth",
+      "item": [
+        {
+          "name": "Register SuperAdmin + New Shop",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "  const res = pm.response.json();",
+                "  pm.collectionVariables.set('SHOP_ID', res.user.shop_id);",
+                "  console.log('Shop ID:', res.user.shop_id);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ahmed SuperAdmin\",\n  \"email\": \"superadmin@techshop.ma\",\n  \"password\": \"password123\",\n  \"role\": \"SuperAdmin\",\n  \"shop_name\": \"TechShop Casablanca\",\n  \"whatsapp_number\": \"212600000000\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/auth/register", "host": ["{{BASE_URL}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Register Admin (existing shop)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Karim Admin\",\n  \"email\": \"admin@techshop.ma\",\n  \"password\": \"password123\",\n  \"role\": \"Admin\",\n  \"shop_id\": \"{{SHOP_ID}}\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/auth/register", "host": ["{{BASE_URL}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Login SuperAdmin",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const res = pm.response.json();",
+                "  pm.collectionVariables.set('TOKEN_SUPERADMIN', res.token);",
+                "  pm.collectionVariables.set('SHOP_ID', res.user.shop_id);",
+                "  console.log('Token set:', res.token.substring(0, 20) + '...');",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"superadmin@techshop.ma\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/auth/login", "host": ["{{BASE_URL}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Login Admin",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 200) {",
+                "  const res = pm.response.json();",
+                "  pm.collectionVariables.set('TOKEN_ADMIN', res.token);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@techshop.ma\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/auth/login", "host": ["{{BASE_URL}}"], "path": ["auth", "login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Products (Private)",
+      "item": [
+        {
+          "name": "GET All Products",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/products", "host": ["{{BASE_URL}}"], "path": ["api", "products"] }
+          }
+        },
+        {
+          "name": "GET Products (Admin - no PurchasePrice)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_ADMIN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/products", "host": ["{{BASE_URL}}"], "path": ["api", "products"] }
+          }
+        },
+        {
+          "name": "POST Create Product",
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "  const res = pm.response.json();",
+                "  pm.collectionVariables.set('PRODUCT_ID', res.id);",
+                "  console.log('Product ID:', res.id);",
+                "}"
+              ]
+            }
+          }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"iPhone 15 Pro\",\n  \"description\": \"Smartphone Apple 256GB Titane\",\n  \"category\": \"Smartphones\",\n  \"purchase_price\": 8500,\n  \"selling_price\": 11999,\n  \"stock\": 10,\n  \"image_url\": \"https://example.com/iphone15.jpg\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/products", "host": ["{{BASE_URL}}"], "path": ["api", "products"] }
+          }
+        },
+        {
+          "name": "PUT Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"selling_price\": 11499,\n  \"stock\": 8\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/products/{{PRODUCT_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "products", "{{PRODUCT_ID}}"] }
+          }
+        },
+        {
+          "name": "DELETE Product",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/products/{{PRODUCT_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "products", "{{PRODUCT_ID}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🌍 Public Routes (No Auth)",
+      "item": [
+        {
+          "name": "GET Public Products",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/public/{{SHOP_ID}}/products", "host": ["{{BASE_URL}}"], "path": ["public", "{{SHOP_ID}}", "products"] }
+          }
+        },
+        {
+          "name": "GET Public Products (in_stock_only)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/public/{{SHOP_ID}}/products?in_stock_only=true",
+              "host": ["{{BASE_URL}}"],
+              "path": ["public", "{{SHOP_ID}}", "products"],
+              "query": [{ "key": "in_stock_only", "value": "true" }]
+            }
+          }
+        },
+        {
+          "name": "GET WhatsApp Link",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/public/{{SHOP_ID}}/products/{{PRODUCT_ID}}/whatsapp", "host": ["{{BASE_URL}}"], "path": ["public", "{{SHOP_ID}}", "products", "{{PRODUCT_ID}}", "whatsapp"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💰 Transactions",
+      "item": [
+        {
+          "name": "GET All Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/transactions", "host": ["{{BASE_URL}}"], "path": ["api", "transactions"] }
+          }
+        },
+        {
+          "name": "POST Create Sale Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Sale\",\n  \"product_id\": \"{{PRODUCT_ID}}\",\n  \"quantity\": 1,\n  \"amount\": 11999\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/transactions", "host": ["{{BASE_URL}}"], "path": ["api", "transactions"] }
+          }
+        },
+        {
+          "name": "POST Create Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"Expense\",\n  \"quantity\": 0,\n  \"amount\": 500\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/transactions", "host": ["{{BASE_URL}}"], "path": ["api", "transactions"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Dashboard (SuperAdmin)",
+      "item": [
+        {
+          "name": "GET Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/reports/dashboard", "host": ["{{BASE_URL}}"], "path": ["api", "reports", "dashboard"] }
+          }
+        },
+        {
+          "name": "GET Dashboard (Admin - should return 403)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_ADMIN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/reports/dashboard", "host": ["{{BASE_URL}}"], "path": ["api", "reports", "dashboard"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏪 Shop Management",
+      "item": [
+        {
+          "name": "GET Shop Info",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/shops", "host": ["{{BASE_URL}}"], "path": ["api", "shops"] }
+          }
+        },
+        {
+          "name": "PUT Update WhatsApp Number",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"whatsapp_number\": \"212612345678\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/shops/whatsapp", "host": ["{{BASE_URL}}"], "path": ["api", "shops", "whatsapp"] }
+          }
+        },
+        {
+          "name": "PUT Update WhatsApp (Admin - should 403)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{TOKEN_ADMIN}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"whatsapp_number\": \"212699999999\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/shops/whatsapp", "host": ["{{BASE_URL}}"], "path": ["api", "shops", "whatsapp"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 User Management",
+      "item": [
+        {
+          "name": "GET All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/users", "host": ["{{BASE_URL}}"], "path": ["api", "users"] }
+          }
+        },
+        {
+          "name": "POST Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Admin\",\n  \"email\": \"newadmin@shop.ma\",\n  \"password\": \"password123\",\n  \"role\": \"Admin\"\n}"
+            },
+            "url": { "raw": "{{BASE_URL}}/api/users", "host": ["{{BASE_URL}}"], "path": ["api", "users"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔴 Security Tests (Multi-tenant)",
+      "item": [
+        {
+          "name": "❌ Access other shop products (should 404)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN_SUPERADMIN}}" }],
+            "description": "Replace with a product ID from a DIFFERENT shop - should return 404",
+            "url": { "raw": "{{BASE_URL}}/api/products/00000000-0000-0000-0000-000000000000", "host": ["{{BASE_URL}}"], "path": ["api", "products", "00000000-0000-0000-0000-000000000000"] }
+          }
+        },
+        {
+          "name": "❌ No token (should 401)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{BASE_URL}}/api/products", "host": ["{{BASE_URL}}"], "path": ["api", "products"] }
+          }
+        },
+        {
+          "name": "❌ Invalid token (should 401)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer invalid.token.here" }],
+            "url": { "raw": "{{BASE_URL}}/api/products", "host": ["{{BASE_URL}}"], "path": ["api", "products"] }
+          }
+        }
+      ]
+    }
+  ]
+}
