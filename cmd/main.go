@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"electronic-shop/config"
 	"electronic-shop/internal/handlers"
@@ -15,6 +16,11 @@ import (
 func main() {
 	// Load environment variables
 	config.LoadEnv()
+
+	// Ensure uploads directory exists
+	if err := os.MkdirAll("uploads", 0755); err != nil {
+		log.Fatalf("Failed to create uploads directory: %v", err)
+	}
 
 	// Connect to database
 	db := config.ConnectDB()
@@ -48,6 +54,10 @@ func main() {
 	transactionHandler := handlers.NewTransactionHandler(db)
 	reportHandler := handlers.NewReportHandler(db)
 	publicHandler := handlers.NewPublicHandler(db)
+	uploadHandler := handlers.NewUploadHandler(db)
+
+	// Serve uploaded images as static files
+	r.Static("/uploads", "./uploads")
 
 	// ========================
 	// PUBLIC ROUTES (no auth)
@@ -106,6 +116,9 @@ func main() {
 			users.POST("", handlers.NewUserHandler(db).CreateUser)
 			users.DELETE("/:id", handlers.NewUserHandler(db).DeleteUser)
 		}
+
+		// Image upload (SuperAdmin + Admin)
+		api.POST("/upload/image", uploadHandler.UploadImage)
 
 		// Dashboard (SuperAdmin only)
 		reports := api.Group("/reports")

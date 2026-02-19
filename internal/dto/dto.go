@@ -11,9 +11,9 @@ type RegisterRequest struct {
 	Email          string `json:"email" binding:"required,email"`
 	Password       string `json:"password" binding:"required,min=6"`
 	Role           string `json:"role" binding:"required,oneof=SuperAdmin Admin"`
-	ShopName       string `json:"shop_name"`        // Required only if first SuperAdmin
-	WhatsAppNumber string `json:"whatsapp_number"`  // Required only if creating new shop
-	ShopID         string `json:"shop_id"`          // Provide existing ShopID to join a shop
+	ShopName       string `json:"shop_name"`       // Required only if first SuperAdmin
+	WhatsAppNumber string `json:"whatsapp_number"` // Required only if creating new shop
+	ShopID         string `json:"shop_id"`         // Provide existing ShopID to join a shop
 }
 
 type LoginRequest struct {
@@ -22,7 +22,7 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	Token string      `json:"token"`
+	Token string       `json:"token"`
 	User  UserResponse `json:"user"`
 }
 
@@ -50,7 +50,7 @@ type CreateProductRequest struct {
 	Name          string  `json:"name" binding:"required,min=1"`
 	Description   string  `json:"description"`
 	Category      string  `json:"category"`
-	PurchasePrice float64 `json:"purchase_price" binding:"required,gt=0"`
+	PurchasePrice float64 `json:"purchase_price"`
 	SellingPrice  float64 `json:"selling_price" binding:"required,gt=0"`
 	Stock         int     `json:"stock" binding:"min=0"`
 	ImageURL      string  `json:"image_url"`
@@ -101,6 +101,7 @@ type CreateTransactionRequest struct {
 	ProductID *uuid.UUID `json:"product_id"`
 	Quantity  int        `json:"quantity" binding:"min=0"`
 	Amount    float64    `json:"amount" binding:"required,gt=0"`
+	Comment   string     `json:"comment"`
 }
 
 // ========================
@@ -108,12 +109,13 @@ type CreateTransactionRequest struct {
 // ========================
 
 type DashboardResponse struct {
-	TotalSales      float64          `json:"total_sales"`
-	TotalExpenses   float64          `json:"total_expenses"`
-	NetProfit       float64          `json:"net_profit"`
-	LowStockProducts []LowStockItem  `json:"low_stock_products"`
-	TotalProducts   int64            `json:"total_products"`
+	TotalSales        float64        `json:"total_sales"`
+	TotalExpenses     float64        `json:"total_expenses"`
+	NetProfit         float64        `json:"net_profit"`
+	LowStockProducts  []LowStockItem `json:"low_stock_products"`
+	TotalProducts     int64          `json:"total_products"`
 	TotalTransactions int64          `json:"total_transactions"`
+	TotalItemsSold    int64          `json:"total_items_sold"`
 }
 
 type LowStockItem struct {

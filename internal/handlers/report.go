@@ -69,6 +69,13 @@ func (h *ReportHandler) GetDashboard(c *gin.Context) {
 	var totalTransactions int64
 	h.db.Model(&models.Transaction{}).Where("shop_id = ?", shopID).Count(&totalTransactions)
 
+	// Total items sold (sum of quantities from Sale transactions)
+	var totalItemsSold int64
+	h.db.Model(&models.Transaction{}).
+		Where("shop_id = ? AND type = ?", shopID, models.TransactionSale).
+		Select("COALESCE(SUM(quantity), 0)").
+		Scan(&totalItemsSold)
+
 	netProfit := totalSales - totalExpenses
 
 	c.JSON(http.StatusOK, dto.DashboardResponse{
@@ -78,5 +85,6 @@ func (h *ReportHandler) GetDashboard(c *gin.Context) {
 		LowStockProducts:  lowStockItems,
 		TotalProducts:     totalProducts,
 		TotalTransactions: totalTransactions,
+		TotalItemsSold:    totalItemsSold,
 	})
 }

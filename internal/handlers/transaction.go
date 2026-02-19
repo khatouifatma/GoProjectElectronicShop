@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"time"
 
 	"electronic-shop/internal/dto"
 	"electronic-shop/internal/middleware"
@@ -29,10 +30,29 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 	}
 
 	transactionType := c.Query("type")
+	dateFrom := c.Query("date_from")
+	dateTo := c.Query("date_to")
+
 	query := h.db.Where("shop_id = ?", shopID).Preload("Product")
 
 	if transactionType != "" {
 		query = query.Where("type = ?", transactionType)
+	}
+
+	// date_from : début de journée (00:00:00)
+	if dateFrom != "" {
+		t, err := time.Parse("2006-01-02", dateFrom)
+		if err == nil {
+			query = query.Where("created_at >= ?", t)
+		}
+	}
+
+	// date_to : fin de journée (23:59:59)
+	if dateTo != "" {
+		t, err := time.Parse("2006-01-02", dateTo)
+		if err == nil {
+			query = query.Where("created_at <= ?", t.Add(24*time.Hour-time.Second))
+		}
 	}
 
 	var transactions []models.Transaction
@@ -97,6 +117,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 			ProductID: req.ProductID,
 			Quantity:  req.Quantity,
 			Amount:    req.Amount,
+			Comment:   req.Comment,
 			ShopID:    shopID, // Always from JWT
 		}
 
